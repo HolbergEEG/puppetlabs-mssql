@@ -79,14 +79,23 @@ class mssql (
 	all    => true
   }
 
-  exec { 'install_mssql2008':
-    command   => "${media}\\setup.exe /Action=Install /IACCEPTSQLSERVERLICENSETERMS /QS /CONFIGURATIONFILE=C:\\sql2008install.ini /SQLSVCPASSWORD=\"${sqlsvcpassword}\" /AGTSVCPASSWORD=\"${agtsvcpassword}\" /ASSVCPASSWORD=\"${assvcpassword}\" /RSSVCPASSWORD=\"${rssvcpassword}\"",
-    cwd       => $media,
-    path      => $media,
-    logoutput => true,
-    creates   => $instancedir,
-    timeout   => 1200,
-    require   => [ File['C:\sql2008install.ini'],
-                   Dism['NetFx3'] ],
+  $instancenamefound = $instancename in  $::SQLServerInstanceNames       
+  $needtoinstall = !$instancenamefound 
+
+  if $needtoinstall {  
+    notify {"Installing new SQL Server 2008R2 instance":}            
+    exec { 'install_mssql2008':
+      command   => "${media}\\setup.exe /Action=Install /IACCEPTSQLSERVERLICENSETERMS /QS /CONFIGURATIONFILE=C:\\sql2008install.ini /SQLSVCPASSWORD=\"${sqlsvcpassword}\" /AGTSVCPASSWORD=\"${agtsvcpassword}\" /ASSVCPASSWORD=\"${assvcpassword}\" /RSSVCPASSWORD=\"${rssvcpassword}\"",
+      cwd       => $media,
+      path      => $media,
+      logoutput => true,
+      creates   => $instancedir,
+      timeout   => 1200,
+      require   => [ File['C:\sql2008install.ini'],
+                     Dism['NetFx3'] ],
+    }
+  }
+  else {
+    notify {"Already found a matchin installed SQL Server 2008R2 instance, nothing to do":}            
   }
 }
