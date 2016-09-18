@@ -76,6 +76,7 @@ class mssql (
 
   dism { 'NetFx3':
     ensure => present,
+	all    => true
   }
 
   exec { 'install_mssql2008':
